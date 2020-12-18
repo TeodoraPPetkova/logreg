@@ -1,0 +1,41 @@
+# Raiffeisen Bank Case Study
+# Path-2-Digital
+# MOBILE BANKING
+
+# Load libraries
+import pandas as pd
+from sklearn.model_selection import train_test_split
+
+# Set output display options
+pd.set_option('display.max_columns', None)
+pd.options.display.float_format = '{:.6f}'.format
+
+# Import data
+FINAL = pd.read_csv("MB_FINAL.csv")
+
+# Separate Variables
+X=FINAL.drop(['client_id','month','FLAG_new_active_user_MB'], axis=1) # predictors
+y=FINAL.iloc[:,2] # target
+
+# Train-Test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, stratify=y)
+
+# Create fake observations with flag = 1 to balance the dataset
+from imblearn.over_sampling import SMOTE
+oversample = SMOTE()
+X_train, y_train = oversample.fit_resample(X_train, y_train)
+
+# Logistic Regression
+from sklearn.linear_model import LogisticRegression
+logreg=LogisticRegression(max_iter=15000)
+logreg.fit(X_train,y_train)
+
+# Validate
+from sklearn import metrics
+expected=y_test
+predicted=logreg.predict(X_test) 
+# Confusion matrix, classification report and score on test set
+print(metrics.classification_report(expected,predicted))
+print(metrics.confusion_matrix(expected,predicted))
+sc=logreg.score(X_test,y_test)
+print('test set score: ',sc) 
